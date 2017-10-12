@@ -1,14 +1,15 @@
 # Vue Veux Pug Coffee Stylus
 
 The original [Vue Webpack,](https://github.com/vuejs-templates/webpack)
-with Veux, Pug, CoffeeScript and Stylus added, as detailed below. 
+with Veux, Pug, CoffeeScript and Stylus added, as detailed below.
 
 
 
 
-## Initial setup with Pug, CoffeeScript and Stylus
+## Process for converting the the original Vue Webpack
 
-In Atom, install theses packages:
+Before starting the conversion process, install the syntax-highlighters for your
+preferred code editor. Eg, in [Atom](https://atom.io/), install these packages:
 
 - language-pug
 - language-coffee-script
@@ -16,34 +17,52 @@ In Atom, install theses packages:
 - language-vue
 
 
-```
-$ sudo npm install -g vue-cli # if not already installed
-$ vue init webpack my-project # hit return to accept all defaults
-$ cd my-project/
-$ sudo npm install
-$ sudo npm i --save-dev pug pug-loader coffee coffee-loader stylus stylus-loader
-$ sudo npm i --save-dev coffeescript sinon@2.1.0
-$ npm install vuex --save
+#### Init the project and install NPM modules.
+
+On the command line, install `vue`, init a new Vue Webpack project, and install
+Veux, Pug, Stylus and CoffeeScript:
+
+```bash
+$ sudo npm install -g vue-cli  # if not already installed
+$ vue init webpack n-a-m-e     # hit return to accept all defaults
+$ cd n-a-m-e/
+$ npm install                  # install default vuejs-templates/webpack modules
+$ npm i --save vuex            # `i` is shorthand for `install`
+$ npm i --save babel-polyfill
+$ npm i --save-dev pug pug-loader stylus stylus-loader
+$ npm i --save-dev coffee coffee-loader coffeescript sinon@2.1.0
 ```
 
-Then in `build/webpack.base.conf.js` comment out ES6 linting (which does not
+You could run `$ npm run dev` at this stage, just to check that Vue Webpack is
+working as expected. Quit it with ctrl-c.
+
+
+#### Change the config files.
+
+In `build/webpack.base.conf.js` comment out ES6 linting (which does not
 understand CoffeeScript):
 
-```
- {
-   test: /\.(js|vue)$/,
-   loader: 'eslint-loader',
-   enforce: 'pre',
-   include: [resolve('src'), resolve('test')],
-   options: {
-     formatter: require('eslint-friendly-formatter')
-   }
- },
+```js
+// @TODO Allow ES6 linting in .js files
+// @TODO Add pug and Stylus linting for .vue files
+// @TODO Add CoffeeScript linting for .vue and .coffee files
+// @TODO Try to get linting working in .litcoffee and .coffee.md files
+/*
+  {
+    test: /\.(js|vue)$/,
+    loader: 'eslint-loader',
+    enforce: 'pre',
+    include: [resolve('src'), resolve('test')],
+    options: {
+      formatter: require('eslint-friendly-formatter')
+    }
+  },
+*/
 ```
 
 ...and while you’re there, let’s make webpack more CoffeeScript-friendly:
 
-```
+```js
   entry: {
     app: './src/main.coffee'
   },
@@ -62,12 +81,12 @@ understand CoffeeScript):
         loader: 'coffee-loader',
         include: [resolve('src'), resolve('test')]
       },
-      {
-        test: /\.js$/,
 ```
 
-After restarting `$ npm run dev` (if it was running) you can use Pug,
-CoffeeScript and Stylus. so `src/App.vue` becomes:
+
+#### Translate App.vue and main.js
+
+With Pug, CoffeeScript and Stylus, `src/App.vue` becomes:
 
 ```
 <template lang="pug">
@@ -95,7 +114,7 @@ a
 </style>
 ```
 
-...and `src/main.js` becomes `src/main.coffee` like this...
+...and `src/main.js` becomes `src/main.coffee`:
 
 ```
 # The Vue build version to load with the `import` command
@@ -117,7 +136,7 @@ new Vue(
 ```
 
 
-## Use Veux storage
+#### Use Veux storage
 
 Create `src/components/Store.vue` which just has a `<script>` element:
 
@@ -142,7 +161,7 @@ To use it, `src/components/HelloWorld.vue` becomes this:
 
 ```
 <template lang="pug">
-div#hello
+div.hello
   h1 Hello
   h1 Count: {{ state.count }}
   button(@click="incrCount") Increment
@@ -168,7 +187,7 @@ h1, h2
 ```
 
 
-## Get routing working
+#### Get routing working
 
 `src/router/index.js` becomes `src/router/index.coffee`, and changes to:
 
@@ -197,7 +216,55 @@ export default new Router(
 ```
 
 
-## Ready to start developing
+#### Translate tests to CoffeeScript
+
+For unit tests to run, we first first need to [Polyfill
+Promises](https://github.com/vuejs-templates/webpack/issues/474#issuecomment-277240182)
+for PhantomJS in `build/webpack.test.conf.js`:
+
+```js
+...
+
+// no need for app entry during tests
+delete webpackConfig.entry
+
+//// Avoid “vuex requires a Promise polyfill” error during unit testing.
+webpackConfig.entry = {
+    app: [
+        'babel-polyfill'
+      , './src/main.coffee'
+    ]
+}
+
+...
+
+```
+
+...and to make sure Karma knows how to [load the
+polyfill](https://github.com/vuejs-templates/webpack/issues/474#issuecomment-322579722),
+change:  
+`    files: ['./index.js'],`  
+to  
+`    files: ['./index.js'],`  
+in `test/unit/karma.conf.js`
+
+Now `$ npm run unit` will work, and correctly detect an error:  
+`expected 'Hello' to equal 'Welcome to Your Vue.js App'`
+
+In `test/unit/specs/Hello.spec.js`, change:  
+`      .to.equal('Welcome to Your Vue.js App')`  
+to
+`      .to.equal('Hello')`
+
+...the unit test should now pass.
+
+@TODO Figure out if the ‘Coverage’ section is working correctly.  
+@TODO Translate the unit test to CoffeeScript.  
+@TODO Get e2e test working.  
+@TODO translate the e2e test to CoffeeScript.  
+
+
+#### Ready to start developing
 
 Now you can run dev mode, test, and build for production:
 
@@ -211,13 +278,10 @@ $ npm run build
 
 
 
-# tmp-vue-test
+## Development and build commands
 
-> A Vue.js project
+```bash
 
-## Build Setup
-
-``` bash
 # install dependencies
 npm install
 

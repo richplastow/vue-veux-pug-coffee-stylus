@@ -29,4 +29,12 @@ const webpackConfig = merge(baseWebpackConfig, {
 // no need for app entry during tests
 delete webpackConfig.entry
 
+//// Avoid “vuex requires a Promise polyfill” error during unit testing.
+webpackConfig.entry = {
+    app: [
+        'babel-polyfill'
+      , './src/main.coffee'
+    ]
+}
+
 module.exports = webpackConfig

@@ -1,5 +1,5 @@
 <template lang="pug">
-div#hello
+div.hello
   h1 Hello
   h1 Count: {{ state.count }}
   button(@click="incrCount") Increment
