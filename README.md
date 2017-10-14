@@ -3,10 +3,14 @@
 The original [Vue Webpack,](https://github.com/vuejs-templates/webpack)
 with Veux, Pug, CoffeeScript and Stylus added, as detailed below.
 
+Each time the original Vue Webpack has a significant update, we should clone it
+and run through the following instructions again. Some of the steps will need
+to be changed or removed, and new steps may need to be added.
 
 
 
-## Process for converting the the original Vue Webpack
+
+# Process for converting the the original Vue Webpack
 
 Before starting the conversion process, install the syntax-highlighters for your
 preferred code editor. Eg, in [Atom](https://atom.io/), install these packages:
@@ -17,7 +21,7 @@ preferred code editor. Eg, in [Atom](https://atom.io/), install these packages:
 - language-vue
 
 
-#### Init the project and install NPM modules.
+### Init the project and install NPM modules.
 
 On the command line, install `vue`, init a new Vue Webpack project, and install
 Veux, Pug, Stylus and CoffeeScript:
@@ -37,7 +41,7 @@ You could run `$ npm run dev` at this stage, just to check that Vue Webpack is
 working as expected. Quit it with ctrl-c.
 
 
-#### Change the config files.
+### Change the config files.
 
 In `build/webpack.base.conf.js` comment out ES6 linting (which does not
 understand CoffeeScript):
@@ -84,7 +88,7 @@ understand CoffeeScript):
 ```
 
 
-#### Translate App.vue and main.js
+### Translate App.vue and main.js
 
 With Pug, CoffeeScript and Stylus, `src/App.vue` becomes:
 
@@ -136,7 +140,7 @@ new Vue(
 ```
 
 
-#### Use Veux storage
+### Use Veux storage
 
 Create `src/components/Store.vue` which just has a `<script>` element:
 
@@ -187,7 +191,7 @@ h1, h2
 ```
 
 
-#### Get routing working
+### Get routing working
 
 `src/router/index.js` becomes `src/router/index.coffee`, and changes to:
 
@@ -216,9 +220,9 @@ export default new Router(
 ```
 
 
-#### Translate tests to CoffeeScript
+### Get unit tests working
 
-For unit tests to run, we first first need to [Polyfill
+For unit tests to run, we first first need to [polyfill
 Promises](https://github.com/vuejs-templates/webpack/issues/474#issuecomment-277240182)
 for PhantomJS in `build/webpack.test.conf.js`:
 
@@ -242,11 +246,10 @@ webpackConfig.entry = {
 
 ...and to make sure Karma knows how to [load the
 polyfill](https://github.com/vuejs-templates/webpack/issues/474#issuecomment-322579722),
-change:  
+in `test/unit/karma.conf.js` change:  
 `    files: ['./index.js'],`  
 to  
-`    files: ['./index.js'],`  
-in `test/unit/karma.conf.js`
+`    files: ['../../node_modules/babel-polyfill/dist/polyfill.js','./index.js'],`
 
 Now `$ npm run unit` will work, and correctly detect an error:  
 `expected 'Hello' to equal 'Welcome to Your Vue.js App'`
@@ -258,13 +261,39 @@ to
 
 ...the unit test should now pass.
 
-@TODO Figure out if the ‘Coverage’ section is working correctly.  
-@TODO Translate the unit test to CoffeeScript.  
-@TODO Get e2e test working.  
-@TODO translate the e2e test to CoffeeScript.  
+@TODO Figure out if the ‘Coverage’ section is working correctly.
 
 
-#### Ready to start developing
+### Get end-to-end (e2e) tests working
+
+For end-to-end tests to run, I needed to install the latest [Java SE Development
+Kit](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
+
+Now `$ npm run e2e` will work, and correctly detect an error:  
+`expected "Welcome to Your Vue.js App" but got: "Hello"`
+
+In `test/e2e/specs/test.js`, change:  
+`      .assert.containsText('h1', 'Welcome to Your Vue.js App')`  
+to
+`      .assert.containsText('h1', 'Hello')`
+
+...the e2e test should now pass.
+
+
+### Translate tests to CoffeeScript
+
+@TODO Translate unit and e2e tests to CoffeeScript.  
+
+
+### Make sure the production-builder works
+
+`$ npm run build` should create a directory called `dist`. You’ll need a local
+server to test it, eg `$ beefy --cwd dist`.
+
+
+
+
+### Ready to start developing
 
 Now you can run dev mode, test, and build for production:
 
@@ -278,7 +307,7 @@ $ npm run build
 
 
 
-## Development and build commands
+# Development and build commands
 
 ```bash
 
